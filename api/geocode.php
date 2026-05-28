@@ -1,6 +1,6 @@
 <?php
 header("Content-Type: application/json");
-require_once __DIR__ . 'Services/GeocodingService.php';
+require_once __DIR__ . '/../Services/GeocodingService.php';
 
 use App\Services\GeocodingService;
 
