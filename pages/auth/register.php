@@ -54,7 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $query = $bdd -> prepare("INSERT INTO users(pseudo, email, password) VALUES (?, ?, ?)");
             $query -> execute($tab);
         }
+
+        $result = "Compte créé avec succès !";
+        echo $result;
         
+    }
+    if ($_POST['action'] == 'login') {
+        header('Location: login.php');
+        exit();
     }
 
 }
