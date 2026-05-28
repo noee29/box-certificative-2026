@@ -85,3 +85,28 @@ def two_opt(tour: List[int], dist: List[List[float]]) -> Tuple[List[int], float]
                     improved = True
     return best, tour_distance(best, dist)
 
+def solve(places: List[Dict]) -> Dict:
+    """
+    Full TSP solver entry point.
+
+    Input:  [{"id": …, "name": …, "lat": float, "lng": float}, …]
+    Output: {"ordered_places": […], "total_distance_km": float, "algorithm": str}
+    """
+    n = len(places)
+
+    if n <= 1:
+        return {"ordered_places": places, "total_distance_km": 0.0, "algorithm": "nearest_neighbor+2opt"}
+
+    if n == 2:
+        d = spherical_distance(places[0]["lat"], places[0]["lng"], places[1]["lat"], places[1]["lng"])
+        return {"ordered_places": places, "total_distance_km": round(2 * d, 3), "algorithm": "nearest_neighbor+2opt"}
+
+    dist = build_distance_matrix(places)
+    initial_tour = nearest_neighbor(dist, start=0)
+    optimized_tour, total_km = two_opt(initial_tour, dist)
+
+    return {
+        "ordered_places": [places[i] for i in optimized_tour],
+        "total_distance_km": round(total_km, 3),
+        "algorithm": "nearest_neighbor+2opt",
+    }
