@@ -25,3 +25,46 @@
 
 </body>
 </html>
+
+
+
+<?php
+
+session_start();
+require("../../config/database.php");
+
+if ($_SERVER['REQUEST_METHOD'] === "POST") {
+
+    if ($_POST['action'] == 'login') {
+
+        $email = $_POST["email"];
+        $password = $_POST["password"];
+        $tab2 = [$email];
+
+        $req = $bdd->prepare("SELECT * FROM users WHERE email = ?");
+        $req->execute($tab2);
+
+        $user = $req->fetch();
+
+        if ($user && password_verify($password, $user['password'])) {
+
+            $_SESSION['id'] = $user['id'];
+            $_SESSION['pseudo'] = $user['pseudo'];
+            $_SESSION['email'] = $user['email'];
+
+            header('Location: ../dashboard.php');
+            exit();
+
+        } else {
+            $error = "Identifiants non valides";
+            echo $error;
+        }
+    }
+
+    if ($_POST['action'] == 'creation') {
+        header('Location: register.php');
+        exit();
+    }
+}
+
+?>
