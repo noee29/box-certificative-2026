@@ -32,6 +32,7 @@
 
 session_start();
 require("../../config/database.php");
+/** @var PDO $bdd */
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
