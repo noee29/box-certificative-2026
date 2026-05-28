@@ -62,3 +62,26 @@ def nearest_neighbor(dist: List[List[float]], start: int = 0) -> List[int]:
         tour.append(nearest)
         unvisited.remove(nearest)
     return tour
+
+def two_opt(tour: List[int], dist: List[List[float]]) -> Tuple[List[int], float]:
+    """
+    Phase 2 — 2-opt local search. O(n²) per pass.
+    Reverses sub-paths to remove crossing edges until no improvement is found.
+    Returns (improved_tour, total_distance_km).
+    """
+    best = tour[:]
+    improved = True
+    while improved:
+        improved = False
+        n = len(best)
+        for i in range(n - 1):
+            for j in range(i + 2, n):
+                if j == n - 1 and i == 0:
+                    continue
+                a, b = best[i], best[i + 1]
+                c, d = best[j], best[(j + 1) % n]
+                if (dist[a][b] + dist[c][d]) - (dist[a][c] + dist[b][d]) > 1e-10:
+                    best[i + 1: j + 1] = best[i + 1: j + 1][::-1]
+                    improved = True
+    return best, tour_distance(best, dist)
+
