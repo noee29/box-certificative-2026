@@ -31,8 +31,10 @@
 <?php
 
 
+// Start a session for possible post-registration flow.
 session_start();
 
+// Load the shared database connection.
 require("../../config/database.php");
 /** @var PDO $bdd */
 
@@ -40,27 +42,33 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     if ($_POST['action'] == 'creation') {
 
+        // Read fields from the registration form.
         $pseudo = $_POST['pseudo'];
         $email = $_POST['email'];
         $password = $_POST['password'];
 
         if($pseudo == "" || $email == "" || $password == "") {
+            // Basic validation: require all fields.
             $error = "Veuillez renseigner tous les champs du formulaire";
             echo $error;
         }
         else {
+            // Hash the password before storing.
             $hashedpassword = password_hash($password, PASSWORD_DEFAULT);
             $tab = [$pseudo, $email, $hashedpassword];
 
+            // Insert the new user record.
             $query = $bdd -> prepare("INSERT INTO users(pseudo, email, password) VALUES (?, ?, ?)");
             $query -> execute($tab);
 
+            // Simple confirmation message.
             $result = "Compte créé avec succès !";
             echo $result;
         }
         
     }
     if ($_POST['action'] == 'login') {
+        // Back to the login page.
         header('Location: login.php');
         exit();
     }
