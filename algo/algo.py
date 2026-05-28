@@ -25,3 +25,19 @@ def spherical_distance(lat_a: float, lon_a: float, lat_b: float, lon_b: float) -
     )
     # Clamp to [-1, 1] to guard against floating-point drift before arccos
     return R_EARTH * math.acos(max(-1.0, min(1.0, inner)))
+
+
+def build_distance_matrix(places: List[Dict]) -> List[List[float]]:
+    """Return a symmetric N×N matrix of km distances between all places."""
+    n = len(places)
+    dist = [[0.0] * n for _ in range(n)]
+    for i in range(n):
+        for j in range(i + 1, n):
+            d = spherical_distance(
+                places[i]["lat"], places[i]["lng"],
+                places[j]["lat"], places[j]["lng"],
+            )
+            dist[i][j] = d
+            dist[j][i] = d
+    return dist
+
