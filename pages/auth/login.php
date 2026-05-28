@@ -30,17 +30,21 @@
 
 <?php
 
+// Start a session to store authenticated user data.
 session_start();
+// Load the shared database connection.
 require("../../config/database.php");
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
     if ($_POST['action'] == 'login') {
 
+        // Read credentials from the login form.
         $email = $_POST["email"];
         $password = $_POST["password"];
         $tab2 = [$email];
 
+        // Fetch the user by email.
         $req = $bdd->prepare("SELECT * FROM users WHERE email = ?");
         $req->execute($tab2);
 
@@ -48,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 
         if ($user && password_verify($password, $user['password'])) {
 
+            // Persist user identity in session and redirect to dashboard.
             $_SESSION['id'] = $user['id'];
             $_SESSION['pseudo'] = $user['pseudo'];
             $_SESSION['email'] = $user['email'];
@@ -56,12 +61,14 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             exit();
 
         } else {
+            // Invalid credentials feedback.
             $error = "Identifiants non valides";
             echo $error;
         }
     }
 
     if ($_POST['action'] == 'creation') {
+        // Redirect to the registration page.
         header('Location: register.php');
         exit();
     }
