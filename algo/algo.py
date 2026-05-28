@@ -41,3 +41,24 @@ def build_distance_matrix(places: List[Dict]) -> List[List[float]]:
             dist[j][i] = d
     return dist
 
+def tour_distance(tour: List[int], dist: List[List[float]]) -> float:
+    """Total length (km) of a closed tour (returns to start)."""
+    n = len(tour)
+    return sum(dist[tour[i]][tour[(i + 1) % n]] for i in range(n))
+
+
+def nearest_neighbor(dist: List[List[float]], start: int = 0) -> List[int]:
+    """
+    Phase 1 — Greedy tour construction. O(n²).
+    From *start*, repeatedly visit the closest unvisited place.
+    """
+    n = len(dist)
+    unvisited = set(range(n))
+    tour = [start]
+    unvisited.remove(start)
+    while unvisited:
+        current = tour[-1]
+        nearest = min(unvisited, key=lambda j: dist[current][j])
+        tour.append(nearest)
+        unvisited.remove(nearest)
+    return tour
