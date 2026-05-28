@@ -87,7 +87,7 @@ def two_opt(tour: List[int], dist: List[List[float]]) -> Tuple[List[int], float]
 
 def solve(places: List[Dict]) -> Dict:
     """
-    Full TSP solver entry point.
+    Full TSP solver entry point.git
 
     Input:  [{"id": …, "name": …, "lat": float, "lng": float}, …]
     Output: {"ordered_places": […], "total_distance_km": float, "algorithm": str}
