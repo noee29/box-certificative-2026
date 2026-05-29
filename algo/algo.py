@@ -141,6 +141,38 @@ def _hotel_circuit(hotel_indices: List[int], dist: List[List[float]]) -> Tuple[L
     return [hotel_indices[i] for i in optimized], total
 
 
+def _day_trips_distance(medoids: List[int], assignments: List[int], dist: List[List[float]]) -> float:
+    """Sum of all round-trip distances from each hotel to its assigned cities."""
+    return sum(
+        2 * dist[medoids[assignments[i]]][i]
+        for i in range(len(dist))
+        if i not in medoids
+    )
+
+
+def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
+    medoids, assignments = cluster_cities(dist, k)
+    ordered_hotels, circuit_km = _hotel_circuit(medoids, dist)
+    day_km = _day_trips_distance(medoids, assignments, dist)
+    clusters = []
+    for m_idx, hotel_idx in enumerate(medoids):
+        clusters.append({
+            "hotel": places[hotel_idx],
+            "day_trips": [
+                places[i] for i, a in enumerate(assignments)
+                if a == m_idx and i != hotel_idx
+            ],
+        })
+    return {
+        "k": k,
+        "hotels_circuit": [places[i] for i in ordered_hotels],
+        "clusters": clusters,
+        "circuit_distance_km": round(circuit_km, 3),
+        "day_trips_distance_km": round(day_km, 3),
+        "total_distance_km": round(circuit_km + day_km, 3),
+    }
+
+
 def solve(places: List[Dict]) -> Dict:
     """
     Full TSP solver entry point.
