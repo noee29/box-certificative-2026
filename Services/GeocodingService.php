@@ -12,7 +12,7 @@ class GeocodingService {
         
         $options = [
             "http" => [
-                "header" => "User-Agent: TravelPlannerApp/1.0 (contact@yourdomain.com)\r\n"
+                "header" => "User-Agent: TravelPlannerApp/1.0 (amirkolawole17@gmail.com)\r\n"
             ]
         ];
         
@@ -21,7 +21,7 @@ class GeocodingService {
             $response = file_get_contents($url, false, $context);
             
             if ($response === false) {
-                throw new Exception("Failed to contact the Geocoding API.");
+                throw new Exception("Failed to contact the Geocoding API.");&
             }
 
             $data = json_decode($response, true);
