@@ -250,3 +250,21 @@ def solve(places: List[Dict]) -> Dict:
         "total_distance_km": round(total_km, 3),
         "algorithm": "nearest_neighbor+2opt",
     }
+
+
+if __name__ == "__main__":
+    import sys
+    import json as _json
+
+    if len(sys.argv) < 2:
+        print(_json.dumps({"message": "No places data provided."}))
+        sys.exit(1)
+
+    try:
+        places = _json.loads(sys.argv[1])
+        if not isinstance(places, list) or len(places) == 0:
+            raise ValueError("places must be a non-empty list")
+        print(_json.dumps(solve(places)))
+    except Exception as exc:
+        print(_json.dumps({"message": str(exc)}))
+        sys.exit(1)
