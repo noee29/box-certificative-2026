@@ -13,6 +13,7 @@ MAX_DAY_TRIP_KM: float = 200.0  # one-way distance limit for a day trip from a h
 
 
 def _deg_to_rad(degrees: float) -> float:
+    """Convert degrees to radians."""
     return degrees * PI / 180.0
 
 
@@ -87,10 +88,12 @@ def two_opt(tour: List[int], dist: List[List[float]]) -> Tuple[List[int], float]
     return best, tour_distance(best, dist)
 
 def _assign_clusters(dist: List[List[float]], medoids: List[int]) -> List[int]:
+    """Assign each node to its nearest medoid index."""
     return [min(range(len(medoids)), key=lambda m: dist[i][medoids[m]]) for i in range(len(dist))]
 
 
 def _update_medoids(dist: List[List[float]], assignments: List[int], k: int) -> List[int]:
+    """Recompute medoids by minimizing intra-cluster distance."""
     n = len(dist)
     new_medoids = []
     for m in range(k):
@@ -162,6 +165,7 @@ def _is_valid_clustering(medoids: List[int], assignments: List[int], dist: List[
 
 
 def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
+    """Build a clustered tour plan for a given number of hotels."""
     medoids, assignments = cluster_cities(dist, k)
     valid = _is_valid_clustering(medoids, assignments, dist)
     ordered_hotels, circuit_km = _hotel_circuit(medoids, dist)
