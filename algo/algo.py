@@ -9,18 +9,12 @@ from typing import List, Dict, Tuple
 
 PI: float = 3.141592
 R_EARTH: float = 6378.197  # km
-<<<<<<< HEAD
-
-
-def _deg_to_rad(degrees: float) -> float:
-=======
 MAX_DAY_TRIP_KM: float = 200.0          # one-way distance limit for a day trip from a hotel
 MAX_KM_COST_PER_HOTEL_SAVED: float = 200.0  # max extra km acceptable to eliminate one hotel
 
 
 def _deg_to_rad(degrees: float) -> float:
     """Convert degrees to radians."""
->>>>>>> develop
     return degrees * PI / 180.0
 
 
@@ -94,8 +88,6 @@ def two_opt(tour: List[int], dist: List[List[float]]) -> Tuple[List[int], float]
                     improved = True
     return best, tour_distance(best, dist)
 
-<<<<<<< HEAD
-=======
 def _assign_clusters(dist: List[List[float]], medoids: List[int]) -> List[int]:
     """Assign each node to its nearest medoid index."""
     return [min(range(len(medoids)), key=lambda m: dist[i][medoids[m]]) for i in range(len(dist))]
@@ -371,7 +363,6 @@ def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
     }
 
 
->>>>>>> develop
 def solve(places: List[Dict]) -> Dict:
     """
     Full TSP solver entry point.
@@ -397,8 +388,6 @@ def solve(places: List[Dict]) -> Dict:
         "total_distance_km": round(total_km, 3),
         "algorithm": "nearest_neighbor+2opt",
     }
-<<<<<<< HEAD
-=======
 
 
 if __name__ == "__main__":
@@ -422,4 +411,3 @@ if __name__ == "__main__":
     except Exception as exc:
         print(_json.dumps({"message": str(exc)}))
         sys.exit(1)
->>>>>>> develop
