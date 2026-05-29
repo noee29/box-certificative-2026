@@ -85,6 +85,62 @@ def two_opt(tour: List[int], dist: List[List[float]]) -> Tuple[List[int], float]
                     improved = True
     return best, tour_distance(best, dist)
 
+def _assign_clusters(dist: List[List[float]], medoids: List[int]) -> List[int]:
+    return [min(range(len(medoids)), key=lambda m: dist[i][medoids[m]]) for i in range(len(dist))]
+
+
+def _update_medoids(dist: List[List[float]], assignments: List[int], k: int) -> List[int]:
+    n = len(dist)
+    new_medoids = []
+    for m in range(k):
+        cluster = [i for i in range(n) if assignments[i] == m]
+        if not cluster:
+            new_medoids.append(0)
+            continue
+        new_medoids.append(min(cluster, key=lambda c: sum(dist[c][j] for j in cluster)))
+    return new_medoids
+
+
+def cluster_cities(dist: List[List[float]], k: int) -> Tuple[List[int], List[int]]:
+    """k-medoids clustering. Returns (medoids, assignments)."""
+    n = len(dist)
+    best_medoids, best_assignments, best_cost = None, None, float("inf")
+
+    inits = [list(range(0, n, max(1, n // k)))[:k]]
+    for start in range(1, k + 1):
+        inits.append([(start * i) % n for i in range(k)])
+
+    for init in inits:
+        medoids = list(dict.fromkeys(init))[:k]
+        while len(medoids) < k:
+            medoids.append((medoids[-1] + 1) % n)
+        for _ in range(100):
+            assignments = _assign_clusters(dist, medoids)
+            new_medoids = _update_medoids(dist, assignments, k)
+            if new_medoids == medoids:
+                break
+            medoids = new_medoids
+        cost = sum(dist[medoids[assignments[i]]][i] for i in range(n) if i not in medoids)
+        if cost < best_cost:
+            best_cost = cost
+            best_medoids = medoids[:]
+            best_assignments = assignments[:]
+
+    return best_medoids, best_assignments
+
+
+def _hotel_circuit(hotel_indices: List[int], dist: List[List[float]]) -> Tuple[List[int], float]:
+    """TSP circuit through hotels. Returns (ordered hotel indices, km)."""
+    k = len(hotel_indices)
+    if k <= 1:
+        return hotel_indices, 0.0
+    if k == 2:
+        return hotel_indices, round(2 * dist[hotel_indices[0]][hotel_indices[1]], 3)
+    sub = [[dist[hotel_indices[i]][hotel_indices[j]] for j in range(k)] for i in range(k)]
+    optimized, total = two_opt(nearest_neighbor(sub, start=0), sub)
+    return [hotel_indices[i] for i in optimized], total
+
+
 def solve(places: List[Dict]) -> Dict:
     """
     Full TSP solver entry point.
