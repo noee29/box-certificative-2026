@@ -256,12 +256,11 @@ if __name__ == "__main__":
     import sys
     import json as _json
 
-    if len(sys.argv) < 2:
-        print(_json.dumps({"message": "No places data provided."}))
-        sys.exit(1)
-
     try:
-        places = _json.loads(sys.argv[1])
+        raw = sys.stdin.read()
+        if not raw.strip():
+            raise ValueError("No places data provided.")
+        places = _json.loads(raw)
         if not isinstance(places, list) or len(places) == 0:
             raise ValueError("places must be a non-empty list")
         print(_json.dumps(solve(places)))

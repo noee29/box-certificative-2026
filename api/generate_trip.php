@@ -27,24 +27,38 @@ if ($algoPath === false) {
 $venvPython = realpath(__DIR__ . '/../.venv/Scripts/python.exe');
 $pythonBin  = ($venvPython !== false) ? $venvPython : 'python';
 
-$command = escapeshellarg($pythonBin)
-    . ' ' . escapeshellarg($algoPath)
-    . ' ' . escapeshellarg(json_encode($decoded['places']))
-    . ' 2>&1';
+// Pass places via stdin to avoid shell-escaping issues on Windows
+$proc = proc_open(
+    escapeshellarg($pythonBin) . ' ' . escapeshellarg($algoPath),
+    [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']],
+    $pipes
+);
 
-$output = shell_exec($command);
-
-if ($output === null || trim($output) === '') {
+if (!is_resource($proc)) {
     http_response_code(500);
-    echo json_encode(["message" => "Algorithm execution failed (no output). Check that Python is installed."]);
+    echo json_encode(["message" => "Failed to start Python process."]);
+    exit;
+}
+
+fwrite($pipes[0], json_encode($decoded['places']));
+fclose($pipes[0]);
+
+$output = stream_get_contents($pipes[1]);
+$stderr = stream_get_contents($pipes[2]);
+fclose($pipes[1]);
+fclose($pipes[2]);
+proc_close($proc);
+
+if (trim($output) === '') {
+    http_response_code(500);
+    echo json_encode(["message" => "Algorithm returned no output.", "debug" => substr($stderr, 0, 500)]);
     exit;
 }
 
 $result = json_decode(trim($output), true);
 if ($result === null) {
     http_response_code(500);
-    // Surface the raw output to help debug path/Python issues
-    echo json_encode(["message" => "Algorithm returned invalid JSON.", "debug" => substr(trim($output), 0, 500)]);
+    echo json_encode(["message" => "Algorithm returned invalid JSON.", "debug" => substr($output, 0, 500)]);
     exit;
 }
 
