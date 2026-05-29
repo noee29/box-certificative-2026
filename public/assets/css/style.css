@@ -1,0 +1,150 @@
+/* ── Palette ─────────────────────────────────────────────────────────────── */
+:root {
+    --green:        #4e9a7a;
+    --green-dark:   #306b54;
+    --green-light:  #e6f4ee;
+    --blue:         #5a8fa8;
+    --blue-light:   #e5f0f7;
+    --bg:           #f5f9f7;
+    --text:         #2a3530;
+    --muted:        #7a9a90;
+    --border:       #c5d9d0;
+    --white:        #ffffff;
+    --radius:       6px;
+}
+
+/* ── Reset / Base ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    font-size: 15px;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    padding: 2rem 1.5rem;
+    max-width: 780px;
+    margin: 0 auto;
+}
+
+/* ── Typography ───────────────────────────────────────────────────────────── */
+h1 { font-size: 1.5rem; color: var(--green-dark); margin-bottom: 1.2rem; border-bottom: 2px solid var(--green-light); padding-bottom: .4rem; }
+h2 { font-size: 1.1rem; color: var(--green-dark); margin: 1.6rem 0 .6rem; }
+h3 { font-size: 1rem; color: var(--text); margin-bottom: .3rem; }
+p  { margin-bottom: .6rem; }
+
+/* ── Links ────────────────────────────────────────────────────────────────── */
+a { color: var(--blue); text-decoration: none; }
+a:hover { color: var(--green-dark); text-decoration: underline; }
+
+/* ── Forms ────────────────────────────────────────────────────────────────── */
+form { margin-bottom: .8rem; }
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+select {
+    display: block;
+    width: 100%;
+    padding: .5rem .75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--white);
+    color: var(--text);
+    font-size: .95rem;
+    margin-bottom: .6rem;
+    transition: border-color .15s;
+}
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(78,154,122,.12);
+}
+label { display: block; font-size: .88rem; color: var(--muted); margin-bottom: .2rem; }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+button {
+    display: inline-block;
+    padding: .45rem 1.1rem;
+    border: none;
+    border-radius: var(--radius);
+    background: var(--green);
+    color: var(--white);
+    font-size: .9rem;
+    cursor: pointer;
+    transition: background .15s;
+    margin-bottom: .4rem;
+}
+button:hover { background: var(--green-dark); }
+
+/* ── Cards (dashboard) ────────────────────────────────────────────────────── */
+.card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: .9rem 1.1rem;
+    margin-bottom: .7rem;
+}
+.card h3 { color: var(--green-dark); margin-bottom: .2rem; }
+.card-links { margin-top: .5rem; display: flex; gap: .8rem; flex-wrap: wrap; }
+.card-links a { font-size: .88rem; }
+.badge {
+    display: inline-block;
+    font-size: .72rem;
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    margin-left: .4rem;
+    vertical-align: middle;
+}
+.badge.public { background: var(--blue-light); color: var(--blue); }
+
+/* ── Messages ─────────────────────────────────────────────────────────────── */
+.msg       { padding: .5rem .9rem; border-radius: var(--radius); margin-bottom: .8rem; font-size: .9rem; }
+.msg.ok    { background: var(--green-light); color: var(--green-dark); border-left: 3px solid var(--green); }
+.msg.error { background: #fdecea; color: #c0392b; border-left: 3px solid #e74c3c; }
+
+/* ── Topbar ───────────────────────────────────────────────────────────────── */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.8rem;
+    padding-bottom: .8rem;
+    border-bottom: 1px solid var(--border);
+}
+.topbar .brand { font-weight: 600; color: var(--green-dark); font-size: 1rem; }
+.topbar form { margin: 0; }
+.topbar button { background: none; color: var(--muted); border: 1px solid var(--border); font-size: .82rem; padding: .28rem .65rem; margin: 0; }
+.topbar button:hover { background: #fdecea; color: #c0392b; border-color: #e8b4b0; }
+
+/* ── Lists ────────────────────────────────────────────────────────────────── */
+ul { padding-left: 1.2rem; }
+ul li { margin-bottom: .3rem; }
+
+/* ── Results page ─────────────────────────────────────────────────────────── */
+.hotel-block { background: var(--white); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 0 var(--radius) var(--radius) 0; padding: .8rem 1rem; margin-bottom: 1.4rem; }
+.hotel-name  { font-size: 1rem; font-weight: 600; color: var(--green-dark); }
+.hotel-tag   { font-size: .73rem; color: var(--muted); font-style: italic; margin-left: .4rem; }
+.btn-row { margin: .4rem 0 .7rem; }
+.btn-row form { display: inline; }
+.btn-row button { font-size: .75rem; color: var(--blue); background: var(--blue-light); border: 1px solid var(--blue); padding: 2px 8px; border-radius: 3px; margin-right: 3px; margin-bottom: 0; }
+.btn-row button:hover { background: var(--blue); color: var(--white); }
+.day-list { list-style: none; padding: 0; margin: .3rem 0; }
+.day-list li { display: flex; align-items: center; gap: .4rem; padding: .25rem 0; font-size: .92rem; border-bottom: 1px solid var(--green-light); }
+.day-list li:last-child { border-bottom: none; }
+.day-list li form { display: inline; }
+.day-list li button { font-size: .7rem; background: var(--green-light); color: var(--green-dark); border: 1px solid var(--border); padding: 1px 5px; border-radius: 2px; margin: 0; }
+.day-list li button:hover { background: var(--green); color: var(--white); }
+.day-name { flex: 1; }
+.day-dist { font-size: .8rem; color: var(--muted); }
+.leg { font-size: .82rem; color: var(--muted); margin-top: .6rem; padding-top: .5rem; border-top: 1px dashed var(--border); }
+.meta { color: var(--muted); font-size: .88rem; margin-bottom: 1.4rem; }
+.rec td { font-weight: 600; color: var(--green-dark); }
+table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+td, th { padding: 6px 10px; border-bottom: 1px solid var(--green-light); text-align: left; }
+th { color: var(--muted); font-weight: normal; font-size: .82rem; background: var(--green-light); }
+.nav { margin-top: 2rem; font-size: .85rem; color: var(--muted); }
+.nav a { color: var(--blue); }

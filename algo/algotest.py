@@ -7,6 +7,15 @@ from algo import (
     nearest_neighbor,
     two_opt,
     solve,
+<<<<<<< HEAD
+=======
+    cluster_cities,
+    _hotel_circuit,
+    _day_trips_distance,
+    _build_plan,
+    _balanced_score,
+    solve_clustered,
+>>>>>>> develop
 )
 
 class TestDegToRad(unittest.TestCase):
@@ -131,5 +140,145 @@ class TestSolve(unittest.TestCase):
         self.assertEqual(result["algorithm"], "nearest_neighbor+2opt")
 
 
+<<<<<<< HEAD
+=======
+PLACES_6 = [
+    {"id": 0, "lat": 48.8566, "lng":  2.3522, "name": "Paris"},
+    {"id": 1, "lat": 47.3220, "lng":  5.0415, "name": "Dijon"},
+    {"id": 2, "lat": 45.7640, "lng":  4.8357, "name": "Lyon"},
+    {"id": 3, "lat": 40.4168, "lng": -3.7038, "name": "Madrid"},
+    {"id": 4, "lat": 41.3851, "lng":  2.1734, "name": "Barcelone"},
+    {"id": 5, "lat": 37.3891, "lng": -5.9845, "name": "Seville"},
+]
+
+
+class TestClusterCities(unittest.TestCase):
+    def setUp(self):
+        self.dist = build_distance_matrix(PLACES_6)
+
+    def test_returns_k_medoids(self):
+        medoids, _ = cluster_cities(self.dist, 2)
+        self.assertEqual(len(medoids), 2)
+
+    def test_medoids_are_valid_indices(self):
+        medoids, _ = cluster_cities(self.dist, 2)
+        for m in medoids:
+            self.assertIn(m, range(len(PLACES_6)))
+
+    def test_all_cities_assigned(self):
+        _, assignments = cluster_cities(self.dist, 2)
+        self.assertEqual(len(assignments), len(PLACES_6))
+
+    def test_assignments_reference_valid_clusters(self):
+        _, assignments = cluster_cities(self.dist, 2)
+        for a in assignments:
+            self.assertIn(a, range(2))
+
+
+class TestHotelCircuit(unittest.TestCase):
+    def setUp(self):
+        self.dist = build_distance_matrix(PLACES_6)
+
+    def test_single_hotel_zero_distance(self):
+        _, km = _hotel_circuit([0], self.dist)
+        self.assertEqual(km, 0.0)
+
+    def test_two_hotels_round_trip(self):
+        _, km = _hotel_circuit([0, 3], self.dist)
+        expected = 2 * self.dist[0][3]
+        self.assertAlmostEqual(km, expected, places=2)
+
+    def test_three_hotels_visits_all(self):
+        ordered, _ = _hotel_circuit([0, 3, 4], self.dist)
+        self.assertEqual(sorted(ordered), [0, 3, 4])
+
+
+class TestDayTripsDistance(unittest.TestCase):
+    def setUp(self):
+        self.dist = [
+            [0,  50, 80],
+            [50,  0, 60],
+            [80, 60,  0],
+        ]
+
+    def test_single_hotel_all_day_trips(self):
+        # hôtel = ville 0, villes 1 et 2 sont des day trips
+        medoids     = [0]
+        assignments = [0, 0, 0]
+        km = _day_trips_distance(medoids, assignments, self.dist)
+        self.assertAlmostEqual(km, 2 * 50 + 2 * 80)
+
+    def test_no_day_trips_when_all_hotels(self):
+        medoids     = [0, 1, 2]
+        assignments = [0, 1, 2]
+        km = _day_trips_distance(medoids, assignments, self.dist)
+        self.assertAlmostEqual(km, 0.0)
+
+
+class TestBuildPlan(unittest.TestCase):
+    def setUp(self):
+        self.dist = build_distance_matrix(PLACES_6)
+
+    def test_returns_required_keys(self):
+        plan = _build_plan(2, PLACES_6, self.dist)
+        for key in ("k", "hotels_circuit", "clusters", "circuit_distance_km",
+                    "day_trips_distance_km", "total_distance_km"):
+            self.assertIn(key, plan)
+
+    def test_k_matches(self):
+        plan = _build_plan(2, PLACES_6, self.dist)
+        self.assertEqual(plan["k"], 2)
+
+    def test_total_is_sum(self):
+        plan = _build_plan(2, PLACES_6, self.dist)
+        self.assertAlmostEqual(
+            plan["total_distance_km"],
+            round(plan["circuit_distance_km"] + plan["day_trips_distance_km"], 3),
+        )
+
+
+class TestBalancedScore(unittest.TestCase):
+    def test_best_dist_scores_zero_on_distance(self):
+        plan = {"total_distance_km": 100.0, "k": 1}
+        score = _balanced_score(plan, worst_dist=200.0, best_dist=100.0, n=5)
+        self.assertAlmostEqual(score, 0.0 * 0.5 + 0.0 * 0.5, places=5)
+
+    def test_worst_dist_scores_half_on_distance(self):
+        plan = {"total_distance_km": 200.0, "k": 1}
+        score = _balanced_score(plan, worst_dist=200.0, best_dist=100.0, n=5)
+        self.assertAlmostEqual(score, 0.5 * 1.0 + 0.5 * 0.0, places=5)
+
+
+class TestSolveClustered(unittest.TestCase):
+    def test_returns_required_keys(self):
+        result = solve_clustered(PLACES_6)
+        for key in ("optimal_k", "hotels_circuit", "clusters",
+                    "circuit_distance_km", "day_trips_distance_km",
+                    "total_distance_km", "cost_by_k"):
+            self.assertIn(key, result)
+
+    def test_optimal_k_in_valid_range(self):
+        result = solve_clustered(PLACES_6)
+        self.assertIn(result["optimal_k"], range(1, len(PLACES_6) + 1))
+
+    def test_max_hotels_respected(self):
+        result = solve_clustered(PLACES_6, max_hotels=2)
+        self.assertEqual(result["optimal_k"], 2)
+
+    def test_cost_by_k_length(self):
+        result = solve_clustered(PLACES_6)
+        self.assertEqual(len(result["cost_by_k"]), len(PLACES_6))
+
+    def test_all_cities_covered(self):
+        result = solve_clustered(PLACES_6, max_hotels=2)
+        all_cities = {result["clusters"][0]["hotel"]["id"],
+                      result["clusters"][1]["hotel"]["id"]}
+        for c in result["clusters"]:
+            for city in c["day_trips"]:
+                all_cities.add(city["id"])
+        self.assertEqual(len(all_cities), len(PLACES_6))
+
+
+>>>>>>> develop
 if __name__ == "__main__":
     unittest.main()
