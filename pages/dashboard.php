@@ -23,8 +23,9 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             $error = "Veuillez saisir un titre pour le voyage";
             echo $error;
         } else {
-            $req = $bdd->prepare("INSERT INTO travels(user_id, titre, statut) VALUES (?, ?, ?)");
-            $req->execute([$user_id, $title, $visibility]);
+            $token = bin2hex(random_bytes(16));
+            $req = $bdd->prepare("INSERT INTO travels(user_id, titre, statut, share_token) VALUES (?, ?, ?, ?)");
+            $req->execute([$user_id, $title, $visibility, $token]);
 
             header("Location: dashboard.php");
             exit();
@@ -86,7 +87,12 @@ $travels = $req->fetchAll();
             <div class="card-links">
                 <a href="places.php?travel_id=<?= $travel['id'] ?>">Gérer les lieux</a>
                 <a href="generate.php?travel_id=<?= $travel['id'] ?>">Générer le tour</a>
-                <a href="results.php?travel_id=<?= $travel['id'] ?>">Voir les résultats</a>
+                <?php if (!empty($travel['ordered_route'])): ?>
+                    <a href="results.php?travel_id=<?= $travel['id'] ?>">Voir les résultats</a>
+                    <a href="view_trip.php?token=<?= htmlspecialchars($travel['share_token']) ?>" style="color:var(--green)">
+                        <?= $travel['statut'] === 'public' ? 'Lien public' : 'Lien privé' ?>
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
     <?php endforeach; ?>

@@ -1,6 +1,7 @@
 <?php
 
 session_start();
+require_once "../config/database.php";
 
 if (!isset($_SESSION['id'])) {
     header("Location: auth/login.php");
@@ -270,9 +271,26 @@ $nbHotels      = count($hotelsCircuit);
     </table>
     <?php endif; ?>
 
+    <?php
+    // Retrieve share token for this travel
+    $shareToken = null;
+    if ($travelId > 0) {
+        $stmtToken = $bdd->prepare("SELECT share_token, statut FROM travels WHERE id = ?");
+        $stmtToken->execute([$travelId]);
+        $travelRow  = $stmtToken->fetch();
+        $shareToken = $travelRow['share_token'] ?? null;
+        $statut     = $travelRow['statut'] ?? 'private';
+    }
+    ?>
     <div class="nav">
         <?php if ($travelId > 0): ?>
-            <a href="generate.php?travel_id=<?= $travelId ?>">Regenerer</a> &middot;
+            <a href="generate.php?travel_id=<?= $travelId ?>">Régénérer</a> &middot;
+        <?php endif; ?>
+        <?php if ($shareToken): ?>
+            <a href="view_trip.php?token=<?= htmlspecialchars($shareToken) ?>">
+                Voir le lien partagé
+                <span class="badge <?= $statut === 'public' ? 'public' : '' ?>"><?= ucfirst($statut) ?></span>
+            </a> &middot;
         <?php endif; ?>
         <a href="dashboard.php">Dashboard</a>
     </div>

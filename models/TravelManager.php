@@ -12,43 +12,34 @@ class TravelManager {
     }
 
     /**
-     * Create a new trip itinerary with a specific privacy level and share token.
+     * Persist the optimised tour result for a given travel.
+     * Stores the full JSON plan (hotels, clusters, distances) in ordered_route.
      */
-    public function createTrip(int $userId, string $title, array $orderedPlaces, string $privacy = 'private'): string|bool {
+    public function saveResult(int $travelId, array $result): bool {
         try {
-            // Generate a secure unique random token for sharing
-            $shareToken = bin2hex(random_bytes(16)); 
-            
-            $stmt = $this->db->prepare("
-                INSERT INTO trips (user_id, title, ordered_route, privacy, share_token) 
-                VALUES (:user_id, :title, :ordered_route, :privacy, :share_token)
-            ");
-            
-            $success = $stmt->execute([
-                ':user_id' => $userId,
-                ':title' => $title,
-                ':ordered_route' => json_encode($orderedPlaces),
-                ':privacy' => $privacy, // 'public' or 'private'
-                ':share_token' => $shareToken
-            ]);
-
-            return $success ? $shareToken : false;
+            $stmt = $this->db->prepare(
+                "UPDATE travels SET ordered_route = ? WHERE id = ?"
+            );
+            return $stmt->execute([json_encode($result), $travelId]);
         } catch (Exception $e) {
-            error_log("Error creating trip: " . $e->getMessage());
+            error_log("TravelManager::saveResult — " . $e->getMessage());
             return false;
         }
     }
 
     /**
-     * Fetch a trip by its share token (Crucial for M1 peer collaboration).
+     * Fetch a travel row by its share token.
+     * Returns the row array or false if not found.
      */
     public function getTripByToken(string $token): array|bool {
         try {
-            $stmt = $this->db->prepare("SELECT * FROM trips WHERE share_token = :token");
-            $stmt->execute([':token' => $token]);
+            $stmt = $this->db->prepare(
+                "SELECT * FROM travels WHERE share_token = ?"
+            );
+            $stmt->execute([$token]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
-            error_log("Error fetching trip by token: " . $e->getMessage());
+            error_log("TravelManager::getTripByToken — " . $e->getMessage());
             return false;
         }
     }

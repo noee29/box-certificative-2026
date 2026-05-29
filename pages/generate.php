@@ -3,8 +3,10 @@
 session_start();
 require("../config/database.php");
 require_once("../models/PlaceManager.php");
+require_once("../models/TravelManager.php");
 
 use App\Models\PlaceManager;
+use App\Models\TravelManager;
 
 if (!isset($_SESSION['id'])) {
     header("Location: auth/login.php");
@@ -70,16 +72,17 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
             }
             if ($statusLine !== '') $message .= " (" . $statusLine . ")";
         } else {
-            $insert = $bdd->prepare("INSERT INTO results (travel_id, distance_totale) VALUES (?, ?)");
-            $saved = $insert->execute([$travelId, $result["total_distance_km"]]);
-            if (!$saved) {
-                $message = "Erreur lors de l'enregistrement du tour.";
-            } else {
+            // Persist result in DB (ordered_route + distance)
+            $tm = new TravelManager($bdd);
+            $tm->saveResult($travelId, $result);
+            $bdd->prepare("INSERT INTO results (travel_id, distance_totale) VALUES (?, ?)
+                           ON DUPLICATE KEY UPDATE distance_totale = VALUES(distance_totale)")
+               ->execute([$travelId, $result["total_distance_km"]]);
+
             $_SESSION["trip_result"]          = $result;
             $_SESSION["trip_result_travel_id"] = $travelId;
             header("Location: results.php?travel_id=" . $travelId);
             exit();
-            }
         }
     }
 }
