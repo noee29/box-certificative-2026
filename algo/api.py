@@ -24,6 +24,7 @@ def generate():
     result = solve(places)
     return jsonify(result), 200
 
+
 @app.route("/optimize", methods=["POST"])
 def optimize():
     data = request.get_json()
