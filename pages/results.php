@@ -21,6 +21,21 @@ function sphericalKm(float $latA, float $lngA, float $latB, float $lngB): float 
     return $R * acos(max(-1.0, min(1.0, $v)));
 }
 
+// ── Helper: recalculate circuit + total km after hotel reordering ────────────
+function recalcDistances(): void {
+    $circuit  = $_SESSION['trip_result']['hotels_circuit'];
+    $n        = count($circuit);
+    $circuitKm = 0.0;
+    for ($i = 0; $i < $n; $i++) {
+        $a = $circuit[$i];
+        $b = $circuit[($i + 1) % $n];
+        $circuitKm += sphericalKm($a['lat'], $a['lng'], $b['lat'], $b['lng']);
+    }
+    $dayTripsKm = $_SESSION['trip_result']['day_trips_distance_km'] ?? 0.0;
+    $_SESSION['trip_result']['circuit_distance_km'] = round($circuitKm, 3);
+    $_SESSION['trip_result']['total_distance_km']   = round($circuitKm + $dayTripsKm, 3);
+}
+
 // ── Helper: reorder clusters to match current hotels_circuit order ────────────
 function resyncClusters(): void {
     $byKey = [];
@@ -50,12 +65,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['trip_result']['hot
         $_SESSION['trip_result']['hotels_circuit'][$hotelIdx - 1] = $_SESSION['trip_result']['hotels_circuit'][$hotelIdx];
         $_SESSION['trip_result']['hotels_circuit'][$hotelIdx]     = $tmp;
         resyncClusters();
+        recalcDistances();
 
     } elseif ($action === 'move_down' && $hotelIdx >= 0 && $hotelIdx < $k - 1) {
         $tmp = $_SESSION['trip_result']['hotels_circuit'][$hotelIdx + 1];
         $_SESSION['trip_result']['hotels_circuit'][$hotelIdx + 1] = $_SESSION['trip_result']['hotels_circuit'][$hotelIdx];
         $_SESSION['trip_result']['hotels_circuit'][$hotelIdx]     = $tmp;
         resyncClusters();
+        recalcDistances();
 
     } elseif ($action === 'set_start' && $hotelIdx > 0 && $hotelIdx < $k) {
         $_SESSION['trip_result']['hotels_circuit'] = array_merge(
@@ -63,6 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_SESSION['trip_result']['hot
             array_slice($_SESSION['trip_result']['hotels_circuit'], 0, $hotelIdx)
         );
         resyncClusters();
+        recalcDistances();
 
     // Day-trip-level reordering within a hotel cluster
     } elseif (in_array($action, ['trip_up', 'trip_down'])) {
