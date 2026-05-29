@@ -192,10 +192,9 @@ def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
 
 def _balanced_score(plan: Dict, worst_dist: float, best_dist: float, n: int) -> float:
     """
-    Normalised score [0,1] balancing total distance and hotel count (equal weight).
-    Computed only on valid plans (all day trips ≤ MAX_DAY_TRIP_KM), which eliminates
-    the trap case where k=1 could win despite unrealistically long day trips.
-    Lower is better.
+    Kept for informational display in cost_by_k only — not used for selection.
+    Selection is now based solely on total_distance_km (minimum wins),
+    followed by a greedy hotel merge to reduce hotel count.
     """
     dist_range  = worst_dist - best_dist or 1.0
     norm_dist   = (plan["total_distance_km"] - best_dist) / dist_range
@@ -310,11 +309,10 @@ def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
     worst_dist = max(p["total_distance_km"] for p in scored_plans)
     best_dist  = min(p["total_distance_km"] for p in scored_plans)
 
-    recommended = min(
-        scored_plans,
-        key=lambda p: _balanced_score(p, worst_dist, best_dist, n),
-    )
-    scored_k = recommended["k"]  # k chosen by scoring, before proximity merge
+    # Select the plan with the shortest total distance among valid plans.
+    # Hotel count reduction is handled by the greedy merge below.
+    recommended = min(scored_plans, key=lambda p: p["total_distance_km"])
+    scored_k = recommended["k"]  # k of the minimum-distance plan, before merge
 
     # Post-processing: merge hotels that are within MAX_DAY_TRIP_KM — fixes
     # k-medoids tendency to assign solo hotels to nearby cities.
