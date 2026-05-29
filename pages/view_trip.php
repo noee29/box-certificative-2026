@@ -1,6 +1,8 @@
 <?php
 session_start();
-require_once __DIR__ . '/../src/Models/TravelManager.php';
+$bdd = null;
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../models/TravelManager.php';
 
 $travelManager = new \App\Models\TravelManager($bdd);
 $token = $_GET['token'] ?? '';

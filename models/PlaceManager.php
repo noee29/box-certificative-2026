@@ -45,4 +45,17 @@ class PlaceManager {
             return [];
         }
     }
+
+    /**
+     * Delete a saved place by its id.
+     */
+    public function deletePlace(int $placeId): bool {
+        try {
+            $stmt = $this->db->prepare("DELETE FROM places WHERE id = :id");
+            return $stmt->execute([':id' => $placeId]);
+        } catch (Exception $e) {
+            error_log("Error deleting place: " . $e->getMessage());
+            return false;
+        }
+    }
 }

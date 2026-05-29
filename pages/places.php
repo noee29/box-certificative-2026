@@ -17,8 +17,12 @@ $message = "";
 
 if ($_SERVER['REQUEST_METHOD'] === "POST") {
     $city = trim($_POST['city'] ?? "");
+    $deleteId = isset($_POST['delete_id']) ? (int) $_POST['delete_id'] : 0;
     if ($travelId <= 0) {
         $message = "Voyage introuvable.";
+    } elseif ($deleteId > 0) {
+        $deleted = $manager->deletePlace($deleteId);
+        $message = $deleted ? "Lieu supprime." : "Erreur lors de la suppression.";
     } elseif ($city === "") {
         $message = "Veuillez saisir une ville.";
     } else {
@@ -68,7 +72,13 @@ $places = $travelId > 0 ? $manager->getPlacesByTravel($travelId) : [];
     <h2>Mes lieux</h2>
     <ul>
         <?php foreach ($places as $place): ?>
-            <li><?= $place['nom'] ?> (<?= $place['latitude'] ?>, <?= $place['longitude'] ?>)</li>
+            <li>
+                <?= htmlspecialchars($place['nom']) ?> (<?= htmlspecialchars($place['latitude']) ?>, <?= htmlspecialchars($place['longitude']) ?>)
+                <form action="" method="POST" style="display:inline">
+                    <input type="hidden" name="delete_id" value="<?= (int)$place['id'] ?>">
+                    <button type="submit" onclick="return confirm('Supprimer ce lieu ?')">Supprimer</button>
+                </form>
+            </li>
         <?php endforeach; ?>
     </ul>
 
