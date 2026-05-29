@@ -9,6 +9,7 @@ from typing import List, Dict, Tuple
 
 PI: float = 3.141592
 R_EARTH: float = 6378.197  # km
+MAX_DAY_TRIP_KM: float = 200.0  # one-way distance limit for a day trip from a hotel
 
 
 def _deg_to_rad(degrees: float) -> float:
@@ -150,8 +151,19 @@ def _day_trips_distance(medoids: List[int], assignments: List[int], dist: List[L
     )
 
 
+def _is_valid_clustering(medoids: List[int], assignments: List[int], dist: List[List[float]]) -> bool:
+    """Returns True if every city is within MAX_DAY_TRIP_KM of its assigned hotel."""
+    medoid_set = set(medoids)
+    for i in range(len(dist)):
+        if i not in medoid_set:
+            if dist[medoids[assignments[i]]][i] > MAX_DAY_TRIP_KM:
+                return False
+    return True
+
+
 def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
     medoids, assignments = cluster_cities(dist, k)
+    valid = _is_valid_clustering(medoids, assignments, dist)
     ordered_hotels, circuit_km = _hotel_circuit(medoids, dist)
     day_km = _day_trips_distance(medoids, assignments, dist)
     clusters = []
@@ -165,6 +177,7 @@ def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
         })
     return {
         "k": k,
+        "valid": valid,
         "hotels_circuit": [places[i] for i in ordered_hotels],
         "clusters": clusters,
         "circuit_distance_km": round(circuit_km, 3),
@@ -175,10 +188,12 @@ def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
 
 def _balanced_score(plan: Dict, worst_dist: float, best_dist: float, n: int) -> float:
     """
-    Score normalisé [0,1] combinant distance et nombre d'hôtels à poids égal.
-    Plus le score est bas, meilleur est le compromis.
+    Normalised score [0,1] balancing total distance and hotel count (equal weight).
+    Computed only on valid plans (all day trips ≤ MAX_DAY_TRIP_KM), which eliminates
+    the trap case where k=1 could win despite unrealistically long day trips.
+    Lower is better.
     """
-    dist_range = worst_dist - best_dist or 1.0
+    dist_range  = worst_dist - best_dist or 1.0
     norm_dist   = (plan["total_distance_km"] - best_dist) / dist_range
     norm_hotels = (plan["k"] - 1) / (n - 1) if n > 1 else 0.0
     return 0.5 * norm_dist + 0.5 * norm_hotels
@@ -186,12 +201,14 @@ def _balanced_score(plan: Dict, worst_dist: float, best_dist: float, n: int) -> 
 
 def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
     """
-    Trouve le plan optimal en minimisant simultanément :
-      - le nombre d'hôtels (coût financier)
-      - la distance totale (circuit + aller-retours)
+    Finds the optimal hotel-based travel plan minimising:
+      - total distance (hotel circuit + day-trip round-trips)
+      - number of hotels
 
-    Si max_hotels est fourni, contraint k ≤ max_hotels et retourne le
-    meilleur compromis dans cette limite. Sinon, cherche sur tout k de 1 à n.
+    Only plans where every city is within MAX_DAY_TRIP_KM of its hotel are
+    considered valid. The score is computed on valid plans only, which prevents
+    degenerate k=1 solutions where day trips would be unrealistically long.
+    Fallback to all plans if no valid plan exists (edge case: single city).
     """
     n = len(places)
     dist = build_distance_matrix(places)
@@ -199,11 +216,15 @@ def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
 
     all_plans = [_build_plan(k, places, dist) for k in k_range]
 
-    worst_dist = max(p["total_distance_km"] for p in all_plans)
-    best_dist  = min(p["total_distance_km"] for p in all_plans)
+    # Only score valid plans — eliminates the trap case
+    valid_plans = [p for p in all_plans if p["valid"]]
+    scored_plans = valid_plans if valid_plans else all_plans  # fallback
+
+    worst_dist = max(p["total_distance_km"] for p in scored_plans)
+    best_dist  = min(p["total_distance_km"] for p in scored_plans)
 
     recommended = min(
-        all_plans,
+        scored_plans,
         key=lambda p: _balanced_score(p, worst_dist, best_dist, n),
     )
 
@@ -217,8 +238,9 @@ def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
         "cost_by_k": [
             {
                 "k": p["k"],
+                "valid": p["valid"],
                 "total_distance_km": p["total_distance_km"],
-                "score": round(_balanced_score(p, worst_dist, best_dist, n), 4),
+                "score": round(_balanced_score(p, worst_dist, best_dist, n), 4) if p["valid"] else None,
             }
             for p in all_plans
         ],

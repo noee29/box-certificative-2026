@@ -279,16 +279,18 @@ $nbHotels      = count($hotelsCircuit);
     <h2>Comparaison par nombre d'hotels</h2>
     <table>
         <thead>
-            <tr><th>Hotels</th><th>Distance (km)</th><th>Score</th></tr>
+            <tr><th>Hotels</th><th>Distance (km)</th><th>Score</th><th>Statut</th></tr>
         </thead>
         <tbody>
         <?php foreach ($costByK as $row):
-            $isRec = ($row['k'] === $k);
+            $isRec   = ($row['k'] === $k);
+            $isValid = $row['valid'] ?? true;
         ?>
-            <tr <?= $isRec ? 'class="rec"' : '' ?>>
+            <tr <?= $isRec ? 'class="rec"' : '' ?> <?= !$isValid ? 'style="color:#bbb"' : '' ?>>
                 <td><?= $row['k'] ?></td>
                 <td><?= $row['total_distance_km'] ?></td>
-                <td><?= $row['score'] ?><?= $isRec ? ' &larr;' : '' ?></td>
+                <td><?= $row['score'] ?? '—' ?><?= $isRec ? ' &larr;' : '' ?></td>
+                <td><?= $isValid ? '' : '&gt; 200 km' ?></td>
             </tr>
         <?php endforeach; ?>
         </tbody>
