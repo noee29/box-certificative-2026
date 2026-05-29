@@ -23,9 +23,19 @@ if ($algoPath === false) {
     exit;
 }
 
-// On Windows (Laragon), prefer the project venv; fall back to system python
+if (!function_exists('proc_open')) {
+    http_response_code(500);
+    echo json_encode(["message" => "proc_open is disabled in PHP."]);
+    exit;
+}
+
+// On Windows (Laragon), prefer the project venv; fall back to py launcher
 $venvPython = realpath(__DIR__ . '/../.venv/Scripts/python.exe');
-$pythonBin  = ($venvPython !== false) ? $venvPython : 'python';
+if ($venvPython !== false) {
+    $pythonBin = $venvPython;
+} else {
+    $pythonBin = (PHP_OS_FAMILY === 'Windows') ? 'py' : 'python3';
+}
 
 // Pass places via stdin to avoid shell-escaping issues on Windows
 $proc = proc_open(

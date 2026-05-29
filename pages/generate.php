@@ -35,21 +35,37 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $basePath = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
         $rootPath = preg_replace('#/pages$#', '', $basePath);
-        $apiUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . $rootPath . '/api/generate_trip.php';
+        $rootPathEncoded = str_replace(' ', '%20', $rootPath);
+        $apiUrl = $scheme . '://' . $_SERVER['HTTP_HOST'] . $rootPathEncoded . '/api/generate_trip.php';
 
         $context = stream_context_create([
             "http" => [
                 "method" => "POST",
                 "header" => "Content-Type: application/json\r\n",
-                "content" => $payload
+                "content" => $payload,
+                "ignore_errors" => true
             ]
         ]);
 
         $response = @file_get_contents($apiUrl, false, $context);
         $result = $response ? json_decode($response, true) : null;
+        $statusLine = $http_response_header[0] ?? '';
 
         if (!$result || !isset($result["ordered_places"])) {
-            $message = $result["message"] ?? "Erreur lors de la generation du tour.";
+            if ($result && isset($result["message"])) {
+                $message = $result["message"];
+                if (isset($result["debug"])) {
+                    $message .= " - " . $result["debug"];
+                }
+            } elseif ($response) {
+                $message = $response;
+            } else {
+                $error = error_get_last();
+                $message = $error["message"] ?? "Erreur lors de la generation du tour.";
+            }
+            if ($statusLine !== '') {
+                $message .= " (" . $statusLine . ")";
+            }
         } else {
             $_SESSION["trip_result"] = $result;
             $_SESSION["trip_result_travel_id"] = $travelId;
