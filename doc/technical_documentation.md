@@ -34,6 +34,14 @@ The Travel Planning Application is a web-based tool that allows authenticated us
 
 ---
 
+## Task Allocation
+
+- **Issam:** Python algorithm, algorithm tests, Flask API sharing
+- **Noe:** Travel database setup, authentication (login/register/logout), dashboard creation, main page (index.php), PHP tests
+- **Amir:** OpenStreetMap API usage, places management, Python-PHP integration (with Issam)
+
+---
+
 ## 2. System Architecture
 
 ### 2.1 Three-Tier Architecture
