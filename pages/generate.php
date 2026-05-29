@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
         $response = @file_get_contents($apiUrl, false, $context);
         $result = $response ? json_decode($response, true) : null;
 
-        if (!$result || (isset($result["status"]) && $result["status"] === "error")) {
-            $message = "Erreur lors de la generation du tour.";
+        if (!$result || !isset($result["ordered_places"])) {
+            $message = $result["message"] ?? "Erreur lors de la generation du tour.";
         } else {
             $_SESSION["trip_result"] = $result;
             $_SESSION["trip_result_travel_id"] = $travelId;
