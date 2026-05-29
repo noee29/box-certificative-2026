@@ -12,6 +12,7 @@ R_EARTH: float = 6378.197  # km
 
 
 def _deg_to_rad(degrees: float) -> float:
+    """Convert degrees to radians."""
     return degrees * PI / 180.0
 
 
@@ -86,10 +87,12 @@ def two_opt(tour: List[int], dist: List[List[float]]) -> Tuple[List[int], float]
     return best, tour_distance(best, dist)
 
 def _assign_clusters(dist: List[List[float]], medoids: List[int]) -> List[int]:
+    """Assign each node to its nearest medoid index."""
     return [min(range(len(medoids)), key=lambda m: dist[i][medoids[m]]) for i in range(len(dist))]
 
 
 def _update_medoids(dist: List[List[float]], assignments: List[int], k: int) -> List[int]:
+    """Recompute medoids by minimizing intra-cluster distance."""
     n = len(dist)
     new_medoids = []
     for m in range(k):
@@ -151,6 +154,7 @@ def _day_trips_distance(medoids: List[int], assignments: List[int], dist: List[L
 
 
 def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
+    """Build a clustered tour plan for a given number of hotels."""
     medoids, assignments = cluster_cities(dist, k)
     ordered_hotels, circuit_km = _hotel_circuit(medoids, dist)
     day_km = _day_trips_distance(medoids, assignments, dist)
@@ -175,8 +179,8 @@ def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
 
 def _balanced_score(plan: Dict, worst_dist: float, best_dist: float, n: int) -> float:
     """
-    Score normalisé [0,1] combinant distance et nombre d'hôtels à poids égal.
-    Plus le score est bas, meilleur est le compromis.
+    Normalized score in [0,1] combining distance and number of hotels equally.
+    Lower score means a better tradeoff.
     """
     dist_range = worst_dist - best_dist or 1.0
     norm_dist   = (plan["total_distance_km"] - best_dist) / dist_range
@@ -186,12 +190,12 @@ def _balanced_score(plan: Dict, worst_dist: float, best_dist: float, n: int) -> 
 
 def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
     """
-    Trouve le plan optimal en minimisant simultanément :
-      - le nombre d'hôtels (coût financier)
-      - la distance totale (circuit + aller-retours)
+        Find the optimal plan by minimizing both:
+            - number of hotels (cost)
+            - total distance (circuit + round trips)
 
-    Si max_hotels est fourni, contraint k ≤ max_hotels et retourne le
-    meilleur compromis dans cette limite. Sinon, cherche sur tout k de 1 à n.
+        If max_hotels is provided, restrict k <= max_hotels and return the
+        best tradeoff within that limit. Otherwise, search k from 1 to n.
     """
     n = len(places)
     dist = build_distance_matrix(places)
