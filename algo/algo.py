@@ -203,6 +203,68 @@ def _balanced_score(plan: Dict, worst_dist: float, best_dist: float, n: int) -> 
     return 0.5 * norm_dist + 0.5 * norm_hotels
 
 
+def _key(place: Dict) -> object:
+    """Stable identifier for a place — prefers numeric id, falls back to name."""
+    return place.get("id", place["name"])
+
+
+def _greedy_merge_hotels(
+    clusters: List[Dict],
+    dist: List[List[float]],
+    places: List[Dict],
+) -> List[Dict]:
+    """
+    Post-processing pass: greedily merge clusters whose hotels are within
+    MAX_DAY_TRIP_KM of each other, provided all cities in the merged cluster
+    remain within MAX_DAY_TRIP_KM of the surviving hotel.
+
+    This fixes the k-medoids bias toward high k: k-medoids minimises
+    intra-cluster distance (solo city = 0), so it tends to give every city
+    its own hotel even when grouping is clearly better. This pass corrects
+    that by merging whenever the constraint is satisfied.
+    """
+    idx_of = {_key(p): i for i, p in enumerate(places)}
+
+    changed = True
+    while changed:
+        changed = False
+        for i in range(len(clusters)):
+            for j in range(i + 1, len(clusters)):
+                hi_idx = idx_of[_key(clusters[i]["hotel"])]
+                hj_idx = idx_of[_key(clusters[j]["hotel"])]
+
+                if dist[hi_idx][hj_idx] > MAX_DAY_TRIP_KM:
+                    continue  # hotels too far apart — cannot merge
+
+                # Cities that would move to cluster i if j is absorbed
+                cities_j = [clusters[j]["hotel"]] + clusters[j]["day_trips"]
+                # Cities that would move to cluster j if i is absorbed
+                cities_i = [clusters[i]["hotel"]] + clusters[i]["day_trips"]
+
+                if all(dist[hi_idx][idx_of[_key(c)]] <= MAX_DAY_TRIP_KM for c in cities_j):
+                    # Absorb j into i
+                    clusters[i] = {
+                        "hotel":     clusters[i]["hotel"],
+                        "day_trips": clusters[i]["day_trips"] + cities_j,
+                    }
+                    clusters.pop(j)
+                    changed = True
+                    break
+                elif all(dist[hj_idx][idx_of[_key(c)]] <= MAX_DAY_TRIP_KM for c in cities_i):
+                    # Absorb i into j
+                    clusters[j] = {
+                        "hotel":     clusters[j]["hotel"],
+                        "day_trips": clusters[j]["day_trips"] + cities_i,
+                    }
+                    clusters.pop(i)
+                    changed = True
+                    break
+            if changed:
+                break
+
+    return clusters
+
+
 def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
     """
     Finds the optimal hotel-based travel plan minimising:
@@ -231,6 +293,31 @@ def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
         scored_plans,
         key=lambda p: _balanced_score(p, worst_dist, best_dist, n),
     )
+
+    # Post-processing: merge hotels that are within MAX_DAY_TRIP_KM — fixes
+    # k-medoids tendency to assign solo hotels to nearby cities.
+    idx_of = {_key(p): i for i, p in enumerate(places)}
+    merged_clusters = _greedy_merge_hotels(
+        [{"hotel": c["hotel"], "day_trips": list(c["day_trips"])} for c in recommended["clusters"]],
+        dist, places,
+    )
+    if len(merged_clusters) != recommended["k"]:
+        new_hotel_idxs  = [idx_of[_key(c["hotel"])] for c in merged_clusters]
+        ordered_idxs, circuit_km = _hotel_circuit(new_hotel_idxs, dist)
+        day_km = sum(
+            2 * dist[idx_of[_key(c["hotel"])]][idx_of[_key(city)]]
+            for c in merged_clusters for city in c["day_trips"]
+        )
+        hotel_to_cluster = {_key(c["hotel"]): c for c in merged_clusters}
+        recommended = {
+            **recommended,
+            "k":                    len(merged_clusters),
+            "hotels_circuit":       [places[i] for i in ordered_idxs],
+            "clusters":             [hotel_to_cluster[_key(places[i])] for i in ordered_idxs],
+            "circuit_distance_km":  round(circuit_km, 3),
+            "day_trips_distance_km": round(day_km, 3),
+            "total_distance_km":    round(circuit_km + day_km, 3),
+        }
 
     return {
         "optimal_k": recommended["k"],
