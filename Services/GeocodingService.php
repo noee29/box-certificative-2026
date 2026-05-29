@@ -21,7 +21,7 @@ class GeocodingService {
             $response = file_get_contents($url, false, $context);
             
             if ($response === false) {
-                throw new Exception("Failed to contact the Geocoding API.");&
+                throw new Exception("Failed to contact the Geocoding API.");
             }
 
             $data = json_decode($response, true);
