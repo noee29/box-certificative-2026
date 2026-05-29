@@ -173,6 +173,58 @@ def _build_plan(k: int, places: List[Dict], dist: List[List[float]]) -> Dict:
     }
 
 
+def _balanced_score(plan: Dict, worst_dist: float, best_dist: float, n: int) -> float:
+    """
+    Score normalisé [0,1] combinant distance et nombre d'hôtels à poids égal.
+    Plus le score est bas, meilleur est le compromis.
+    """
+    dist_range = worst_dist - best_dist or 1.0
+    norm_dist   = (plan["total_distance_km"] - best_dist) / dist_range
+    norm_hotels = (plan["k"] - 1) / (n - 1) if n > 1 else 0.0
+    return 0.5 * norm_dist + 0.5 * norm_hotels
+
+
+def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
+    """
+    Trouve le plan optimal en minimisant simultanément :
+      - le nombre d'hôtels (coût financier)
+      - la distance totale (circuit + aller-retours)
+
+    Si max_hotels est fourni, contraint k ≤ max_hotels et retourne le
+    meilleur compromis dans cette limite. Sinon, cherche sur tout k de 1 à n.
+    """
+    n = len(places)
+    dist = build_distance_matrix(places)
+    k_range = range(1, (max_hotels or n) + 1)
+
+    all_plans = [_build_plan(k, places, dist) for k in k_range]
+
+    worst_dist = max(p["total_distance_km"] for p in all_plans)
+    best_dist  = min(p["total_distance_km"] for p in all_plans)
+
+    recommended = min(
+        all_plans,
+        key=lambda p: _balanced_score(p, worst_dist, best_dist, n),
+    )
+
+    return {
+        "optimal_k": recommended["k"],
+        "hotels_circuit": recommended["hotels_circuit"],
+        "clusters": recommended["clusters"],
+        "circuit_distance_km": recommended["circuit_distance_km"],
+        "day_trips_distance_km": recommended["day_trips_distance_km"],
+        "total_distance_km": recommended["total_distance_km"],
+        "cost_by_k": [
+            {
+                "k": p["k"],
+                "total_distance_km": p["total_distance_km"],
+                "score": round(_balanced_score(p, worst_dist, best_dist, n), 4),
+            }
+            for p in all_plans
+        ],
+    }
+
+
 def solve(places: List[Dict]) -> Dict:
     """
     Full TSP solver entry point.
