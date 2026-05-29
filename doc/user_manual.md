@@ -56,7 +56,7 @@ Total: 2 hotels, far fewer hotel changes than visiting each city separately.
 
 4. Open your browser and navigate to:
    ```
-   http://localhost/box-certificative-2026/pages/auth/login.php
+   http://localhost/Box%20certificative%202026/pages/
    ```
 
 ---
@@ -68,7 +68,7 @@ Total: 2 hotels, far fewer hotel changes than visiting each city separately.
 1. On the login page, click **"Créer un compte"**.
 2. Fill in your **pseudo** (display name), **email address**, and **password**.
 3. Click **"Créer le compte"**.
-4. You will be redirected to the login page. Sign in with your new credentials.
+4. Sign in with your new credentials.
 
 ### 3.2 Log In
 
