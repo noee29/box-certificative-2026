@@ -12,17 +12,17 @@ class PlaceManager {
     }
 
     /**
-     * Save a location into the user's list.
+     * Save a location for a travel.
      */
-    public function savePlace(int $userId, string $name, float $latitude, float $longitude): bool {
+    public function savePlace(int $travelId, string $name, float $latitude, float $longitude): bool {
         try {
             $stmt = $this->db->prepare("
-                INSERT INTO places (user_id, name, latitude, longitude) 
-                VALUES (:user_id, :name, :latitude, :longitude)
+                INSERT INTO places (travel_id, nom, latitude, longitude) 
+                VALUES (:travel_id, :nom, :latitude, :longitude)
             ");
             return $stmt->execute([
-                ':user_id' => $userId,
-                ':name' => $name,
+                ':travel_id' => $travelId,
+                ':nom' => $name,
                 ':latitude' => $latitude,
                 ':longitude' => $longitude
             ]);
@@ -33,12 +33,12 @@ class PlaceManager {
     }
 
     /**
-     * Retrieve all saved places for a specific user.
+     * Retrieve all saved places for a travel.
      */
-    public function getPlacesByUser(int $userId): array {
+    public function getPlacesByTravel(int $travelId): array {
         try {
-            $stmt = $this->db->prepare("SELECT * FROM places WHERE user_id = :user_id");
-            $stmt->execute([':user_id' => $userId]);
+            $stmt = $this->db->prepare("SELECT * FROM places WHERE travel_id = :travel_id");
+            $stmt->execute([':travel_id' => $travelId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             error_log("Error fetching places: " . $e->getMessage());
