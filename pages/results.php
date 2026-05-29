@@ -126,6 +126,7 @@ if ($result && isset($result['hotels_circuit'])) {
 }
 
 $k             = $result['optimal_k']              ?? 0;
+$scoredK       = $result['scored_k']               ?? $k;
 $circuitKm     = $result['circuit_distance_km']    ?? 0;
 $dayTripsKm    = $result['day_trips_distance_km']  ?? 0;
 $totalKm       = $result['total_distance_km']      ?? 0;
@@ -283,11 +284,11 @@ $nbHotels      = count($hotelsCircuit);
         </thead>
         <tbody>
         <?php foreach ($costByK as $row):
-            $isRec   = ($row['k'] === $k);
+            $isRec   = $row['recommended'] ?? ($row['k'] === $scoredK);
             $isValid = $row['valid'] ?? true;
         ?>
             <tr <?= $isRec ? 'class="rec"' : '' ?> <?= !$isValid ? 'style="color:#bbb"' : '' ?>>
-                <td><?= $row['k'] ?></td>
+                <td><?= $row['k'] ?><?= ($row['k'] === $k && $k !== $scoredK) ? ' (fusionné)' : '' ?></td>
                 <td><?= $row['total_distance_km'] ?></td>
                 <td><?= $row['score'] ?? '—' ?><?= $isRec ? ' &larr;' : '' ?></td>
                 <td><?= $isValid ? '' : '&gt; 200 km' ?></td>

@@ -314,6 +314,7 @@ def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
         scored_plans,
         key=lambda p: _balanced_score(p, worst_dist, best_dist, n),
     )
+    scored_k = recommended["k"]  # k chosen by scoring, before proximity merge
 
     # Post-processing: merge hotels that are within MAX_DAY_TRIP_KM — fixes
     # k-medoids tendency to assign solo hotels to nearby cities.
@@ -322,7 +323,7 @@ def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
         [{"hotel": c["hotel"], "day_trips": list(c["day_trips"])} for c in recommended["clusters"]],
         dist, places,
     )
-    if len(merged_clusters) != recommended["k"]:
+    if len(merged_clusters) != scored_k:
         new_hotel_idxs  = [idx_of[_key(c["hotel"])] for c in merged_clusters]
         ordered_idxs, circuit_km = _hotel_circuit(new_hotel_idxs, dist)
         day_km = sum(
@@ -332,27 +333,29 @@ def solve_clustered(places: List[Dict], max_hotels: int = None) -> Dict:
         hotel_to_cluster = {_key(c["hotel"]): c for c in merged_clusters}
         recommended = {
             **recommended,
-            "k":                    len(merged_clusters),
-            "hotels_circuit":       [places[i] for i in ordered_idxs],
-            "clusters":             [hotel_to_cluster[_key(places[i])] for i in ordered_idxs],
-            "circuit_distance_km":  round(circuit_km, 3),
+            "k":                     len(merged_clusters),
+            "hotels_circuit":        [places[i] for i in ordered_idxs],
+            "clusters":              [hotel_to_cluster[_key(places[i])] for i in ordered_idxs],
+            "circuit_distance_km":   round(circuit_km, 3),
             "day_trips_distance_km": round(day_km, 3),
-            "total_distance_km":    round(circuit_km + day_km, 3),
+            "total_distance_km":     round(circuit_km + day_km, 3),
         }
 
     return {
-        "optimal_k": recommended["k"],
-        "hotels_circuit": recommended["hotels_circuit"],
-        "clusters": recommended["clusters"],
-        "circuit_distance_km": recommended["circuit_distance_km"],
+        "optimal_k":             recommended["k"],
+        "scored_k":              scored_k,  # k that had the best score (before merge)
+        "hotels_circuit":        recommended["hotels_circuit"],
+        "clusters":              recommended["clusters"],
+        "circuit_distance_km":   recommended["circuit_distance_km"],
         "day_trips_distance_km": recommended["day_trips_distance_km"],
-        "total_distance_km": recommended["total_distance_km"],
+        "total_distance_km":     recommended["total_distance_km"],
         "cost_by_k": [
             {
-                "k": p["k"],
-                "valid": p["valid"],
+                "k":                 p["k"],
+                "valid":             p["valid"],
                 "total_distance_km": p["total_distance_km"],
-                "score": round(_balanced_score(p, worst_dist, best_dist, n), 4) if p["valid"] else None,
+                "score":             round(_balanced_score(p, worst_dist, best_dist, n), 4) if p["valid"] else None,
+                "recommended":       p["k"] == scored_k,
             }
             for p in all_plans
         ],
