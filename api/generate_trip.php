@@ -40,7 +40,11 @@ if (!is_resource($proc)) {
     exit;
 }
 
-fwrite($pipes[0], json_encode($decoded['places']));
+$payload = ["places" => $decoded['places']];
+if (isset($decoded['max_hotels']) && is_numeric($decoded['max_hotels']) && $decoded['max_hotels'] > 0) {
+    $payload['max_hotels'] = (int) $decoded['max_hotels'];
+}
+fwrite($pipes[0], json_encode($payload));
 fclose($pipes[0]);
 
 $output = stream_get_contents($pipes[1]);

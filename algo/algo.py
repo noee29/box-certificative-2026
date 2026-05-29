@@ -259,11 +259,17 @@ if __name__ == "__main__":
     try:
         raw = sys.stdin.read()
         if not raw.strip():
-            raise ValueError("No places data provided.")
-        places = _json.loads(raw)
+            raise ValueError("No input data provided.")
+        data = _json.loads(raw)
+        # Accept plain list (legacy) or {"places": [...], "max_hotels": N}
+        if isinstance(data, list):
+            places, max_hotels = data, None
+        else:
+            places     = data.get("places", [])
+            max_hotels = data.get("max_hotels")
         if not isinstance(places, list) or len(places) == 0:
             raise ValueError("places must be a non-empty list")
-        print(_json.dumps(solve(places)))
+        print(_json.dumps(solve_clustered(places, max_hotels=max_hotels)))
     except Exception as exc:
         print(_json.dumps({"message": str(exc)}))
         sys.exit(1)
