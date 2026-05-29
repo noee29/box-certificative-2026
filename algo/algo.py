@@ -241,8 +241,30 @@ def _greedy_merge_hotels(
                 # Cities that would move to cluster j if i is absorbed
                 cities_i = [clusters[i]["hotel"]] + clusters[i]["day_trips"]
 
-                if all(dist[hi_idx][idx_of[_key(c)]] <= MAX_DAY_TRIP_KM for c in cities_j):
-                    # Absorb j into i
+                can_absorb_j = all(dist[hi_idx][idx_of[_key(c)]] <= MAX_DAY_TRIP_KM for c in cities_j)
+                can_absorb_i = all(dist[hj_idx][idx_of[_key(c)]] <= MAX_DAY_TRIP_KM for c in cities_i)
+
+                if not can_absorb_j and not can_absorb_i:
+                    continue
+
+                # When both directions are valid, pick the one with the shorter
+                # resulting circuit — i.e. the hotel closest to the other cities.
+                if can_absorb_j and can_absorb_i:
+                    other_hotel_idxs = [
+                        idx_of[_key(c["hotel"])]
+                        for idx, c in enumerate(clusters)
+                        if idx != i and idx != j
+                    ]
+                    # Circuit cost if i survives (j absorbed into i)
+                    idxs_i_survives = [hi_idx] + other_hotel_idxs
+                    _, cost_i = _hotel_circuit(idxs_i_survives, dist)
+                    # Circuit cost if j survives (i absorbed into j)
+                    idxs_j_survives = [hj_idx] + other_hotel_idxs
+                    _, cost_j = _hotel_circuit(idxs_j_survives, dist)
+                    can_absorb_j = (cost_i <= cost_j)  # keep i only if its circuit is shorter
+                    can_absorb_i = not can_absorb_j
+
+                if can_absorb_j:
                     clusters[i] = {
                         "hotel":     clusters[i]["hotel"],
                         "day_trips": clusters[i]["day_trips"] + cities_j,
@@ -250,8 +272,7 @@ def _greedy_merge_hotels(
                     clusters.pop(j)
                     changed = True
                     break
-                elif all(dist[hj_idx][idx_of[_key(c)]] <= MAX_DAY_TRIP_KM for c in cities_i):
-                    # Absorb i into j
+                else:
                     clusters[j] = {
                         "hotel":     clusters[j]["hotel"],
                         "day_trips": clusters[j]["day_trips"] + cities_i,
