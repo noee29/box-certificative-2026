@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../src/Models/TravelManager.php';
 
-$travelManager = new \App\Models\TravelManager($db);
+$travelManager = new \App\Models\TravelManager($bdd);
 $token = $_GET['token'] ?? '';
 
 $trip = $travelManager->getTripByToken($token);

@@ -3,7 +3,7 @@
 require_once __DIR__ . '/../src/Models/TravelManager.php';
 // $db must be defined via a connection script
 
-$travelManager = new \App\Models\TravelManager($db);
+$travelManager = new \App\Models\TravelManager($bdd);
 // Assuming trip ID or token is passed via GET
 $token = $_GET['token'] ?? '';
 
