@@ -9,7 +9,8 @@ from typing import List, Dict, Tuple
 
 PI: float = 3.141592
 R_EARTH: float = 6378.197  # km
-MAX_DAY_TRIP_KM: float = 200.0  # one-way distance limit for a day trip from a hotel
+MAX_DAY_TRIP_KM: float = 200.0          # one-way distance limit for a day trip from a hotel
+MAX_KM_COST_PER_HOTEL_SAVED: float = 200.0  # max extra km acceptable to eliminate one hotel
 
 
 def _deg_to_rad(degrees: float) -> float:
@@ -202,6 +203,17 @@ def _balanced_score(plan: Dict, worst_dist: float, best_dist: float, n: int) -> 
     return 0.5 * norm_dist + 0.5 * norm_hotels
 
 
+def _plan_total_km(clusters: List[Dict], dist: List[List[float]], idx_of: Dict) -> float:
+    """Circuit km + all day-trip round-trip km for a given set of clusters."""
+    hotel_idxs = [idx_of[_key(c["hotel"])] for c in clusters]
+    _, circuit_km = _hotel_circuit(hotel_idxs, dist)
+    day_km = sum(
+        2 * dist[idx_of[_key(c["hotel"])]][idx_of[_key(city)]]
+        for c in clusters for city in c["day_trips"]
+    )
+    return circuit_km + day_km
+
+
 def _key(place: Dict) -> object:
     """Stable identifier for a place — prefers numeric id, falls back to name."""
     return place.get("id", place["name"])
@@ -246,39 +258,30 @@ def _greedy_merge_hotels(
                 if not can_absorb_j and not can_absorb_i:
                     continue
 
-                # When both directions are valid, pick the one with the shorter
-                # resulting circuit — i.e. the hotel closest to the other cities.
-                if can_absorb_j and can_absorb_i:
-                    other_hotel_idxs = [
-                        idx_of[_key(c["hotel"])]
-                        for idx, c in enumerate(clusters)
-                        if idx != i and idx != j
-                    ]
-                    # Circuit cost if i survives (j absorbed into i)
-                    idxs_i_survives = [hi_idx] + other_hotel_idxs
-                    _, cost_i = _hotel_circuit(idxs_i_survives, dist)
-                    # Circuit cost if j survives (i absorbed into j)
-                    idxs_j_survives = [hj_idx] + other_hotel_idxs
-                    _, cost_j = _hotel_circuit(idxs_j_survives, dist)
-                    can_absorb_j = (cost_i <= cost_j)  # keep i only if its circuit is shorter
-                    can_absorb_i = not can_absorb_j
+                # Build candidate cluster lists for each direction
+                def _candidate_j() -> List[Dict]:
+                    m = {"hotel": clusters[i]["hotel"], "day_trips": clusters[i]["day_trips"] + cities_j}
+                    return [m if idx == i else c for idx, c in enumerate(clusters) if idx != j]
 
-                if can_absorb_j:
-                    clusters[i] = {
-                        "hotel":     clusters[i]["hotel"],
-                        "day_trips": clusters[i]["day_trips"] + cities_j,
-                    }
-                    clusters.pop(j)
-                    changed = True
-                    break
+                def _candidate_i() -> List[Dict]:
+                    m = {"hotel": clusters[j]["hotel"], "day_trips": clusters[j]["day_trips"] + cities_i}
+                    return [m if idx == j else c for idx, c in enumerate(clusters) if idx != i]
+
+                km_before = _plan_total_km(clusters, dist, idx_of)
+                cost_j = (_plan_total_km(_candidate_j(), dist, idx_of) - km_before) if can_absorb_j else float("inf")
+                cost_i = (_plan_total_km(_candidate_i(), dist, idx_of) - km_before) if can_absorb_i else float("inf")
+
+                # Skip if both directions cost more km than the threshold allows
+                if cost_j > MAX_KM_COST_PER_HOTEL_SAVED and cost_i > MAX_KM_COST_PER_HOTEL_SAVED:
+                    continue
+
+                # Pick the cheaper direction
+                if cost_j <= cost_i:
+                    clusters = _candidate_j()
                 else:
-                    clusters[j] = {
-                        "hotel":     clusters[j]["hotel"],
-                        "day_trips": clusters[j]["day_trips"] + cities_i,
-                    }
-                    clusters.pop(i)
-                    changed = True
-                    break
+                    clusters = _candidate_i()
+                changed = True
+                break
             if changed:
                 break
 
