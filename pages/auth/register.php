@@ -4,25 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription</title>
+    <link rel="stylesheet" href="../../public/assets/css/style.css">
 </head>
 <body>
 
-    <h1>Créer vous un compte ci-dessous :</h1>
+    <h1>Créer un compte</h1>
 
     <form action="" method="POST">
         <input type="hidden" name="action" value="creation">
-
-        <input type="text" placeholder="Pseudo" name="pseudo">
-        <input type="email" placeholder="Adresse mail" name="email">
-        <input type="password" placeholder="Mot de passe" name="password">
-
-        <button type="submit">Créer vous un compte</button>
+        <label>Pseudo</label>
+        <input type="text" placeholder="Votre pseudo" name="pseudo">
+        <label>Adresse email</label>
+        <input type="email" placeholder="votre@email.com" name="email">
+        <label>Mot de passe</label>
+        <input type="password" placeholder="••••••••" name="password">
+        <button type="submit">Créer le compte</button>
     </form>
 
-    <form action="" method="POST">
-        <input type="hidden" name="action" value="login">
-        <button type="submit">Retour à la page de connexion</button>
-    </form>
+    <p style="margin-top:.8rem;font-size:.9rem;color:var(--muted)">
+        Déjà un compte ?
+        <form action="" method="POST" style="display:inline">
+            <input type="hidden" name="action" value="login">
+            <button type="submit" style="background:none;color:var(--blue);border:none;padding:0;font-size:.9rem;cursor:pointer;margin:0">Se connecter</button>
+        </form>
+    </p>
 
 </body>
 </html>

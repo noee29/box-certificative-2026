@@ -139,35 +139,8 @@ $nbHotels      = count($hotelsCircuit);
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Itineraire optimise</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: Georgia, serif; font-size: 15px; max-width: 720px; margin: 3rem auto; padding: 0 1.5rem; color: #222; background: #fff; }
-        h1 { font-size: 1.4rem; font-weight: normal; border-bottom: 1px solid #ddd; padding-bottom: .5rem; margin-bottom: .4rem; }
-        .meta { font-size: .85rem; color: #777; margin-bottom: 2rem; }
-        h2 { font-size: 1rem; font-weight: bold; text-transform: uppercase; letter-spacing: .06em; color: #555; margin: 2rem 0 .8rem; }
-        .hotel-block { border-left: 3px solid #bbb; padding: .5rem 0 .5rem 1rem; margin-bottom: 1.6rem; }
-        .hotel-name { font-size: 1.05rem; font-weight: bold; }
-        .hotel-tag { font-size: .75rem; color: #999; font-style: italic; margin-left: .4rem; font-family: sans-serif; }
-        .btn-row { margin: .3rem 0 .6rem; }
-        .btn-row form { display: inline; }
-        .btn-row button { font-size: .75rem; font-family: sans-serif; color: #444; background: #f0f0f0; border: 1px solid #bbb; padding: 2px 8px; border-radius: 3px; cursor: pointer; margin-right: 4px; }
-        .btn-row button:hover { background: #e0e0e0; }
-        .day-list { list-style: none; padding: 0; margin: .3rem 0; }
-        .day-list li { display: flex; align-items: center; gap: .4rem; padding: .2rem 0; font-size: .95rem; }
-        .day-list li form { display: inline; }
-        .day-list li button { font-size: .7rem; font-family: sans-serif; color: #666; background: #f5f5f5; border: 1px solid #ccc; padding: 1px 5px; border-radius: 2px; cursor: pointer; line-height: 1.4; }
-        .day-list li button:hover { background: #e8e8e8; }
-        .day-name { flex: 1; }
-        .day-dist { font-size: .8rem; color: #aaa; font-family: sans-serif; }
-        .leg { font-size: .82rem; color: #aaa; font-family: sans-serif; margin: .5rem 0 0 0; padding-top: .5rem; border-top: 1px dashed #e5e5e5; }
-        table { width: 100%; border-collapse: collapse; font-size: .85rem; font-family: sans-serif; }
-        td, th { padding: 5px 8px; border-bottom: 1px solid #eee; text-align: left; }
-        th { color: #777; font-weight: normal; }
-        .rec td { font-weight: bold; }
-        .nav { margin-top: 2.5rem; font-size: .85rem; font-family: sans-serif; color: #888; }
-        .nav a { color: #555; }
-    </style>
+    <title>Itinéraire optimisé</title>
+    <link rel="stylesheet" href="../public/assets/css/style.css">
 </head>
 <body>
 

@@ -50,39 +50,48 @@ $places = $travelId > 0 ? $manager->getPlacesByTravel($travelId) : [];
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Gerer les lieux</title>
+    <title>Gérer les lieux</title>
+    <link rel="stylesheet" href="../public/assets/css/style.css">
 </head>
 <body>
 
-    <h1>Gerer les lieux</h1>
-
-    <?php if ($travelId > 0): ?>
-        <p>Voyage ID : <?= $travelId ?></p>
-    <?php endif; ?>
+    <h1>Gérer les lieux</h1>
 
     <?php if ($message): ?>
-        <p><?= $message ?></p>
+        <p class="msg <?= str_contains($message, 'trouvable') || str_contains($message, 'introuvable') || str_contains($message, 'Erreur') ? 'error' : 'ok' ?>">
+            <?= htmlspecialchars($message) ?>
+        </p>
     <?php endif; ?>
 
     <form action="" method="POST">
-        <input type="text" name="city" placeholder="Nom de la ville">
+        <label>Ajouter une ville</label>
+        <input type="text" name="city" placeholder="Ex: Lyon, Tokyo, New York...">
         <button type="submit">Ajouter</button>
     </form>
 
-    <h2>Mes lieux</h2>
-    <ul>
+    <h2>Lieux ajoutés (<?= count($places) ?>)</h2>
+
+    <?php if (empty($places)): ?>
+        <p style="color:var(--muted)">Aucun lieu ajouté pour l'instant.</p>
+    <?php else: ?>
+    <ul style="list-style:none;padding:0">
         <?php foreach ($places as $place): ?>
-            <li>
-                <?= htmlspecialchars($place['nom']) ?> (<?= htmlspecialchars($place['latitude']) ?>, <?= htmlspecialchars($place['longitude']) ?>)
-                <form action="" method="POST" style="display:inline">
+            <li style="display:flex;align-items:center;gap:.8rem;padding:.4rem 0;border-bottom:1px solid var(--green-light)">
+                <span style="flex:1"><?= htmlspecialchars($place['nom']) ?></span>
+                <span style="font-size:.8rem;color:var(--muted)"><?= round($place['latitude'],4) ?>, <?= round($place['longitude'],4) ?></span>
+                <form action="" method="POST" style="margin:0">
                     <input type="hidden" name="delete_id" value="<?= (int)$place['id'] ?>">
-                    <button type="submit" onclick="return confirm('Supprimer ce lieu ?')">Supprimer</button>
+                    <button type="submit" class="danger" onclick="return confirm('Supprimer ce lieu ?')">Supprimer</button>
                 </form>
             </li>
         <?php endforeach; ?>
     </ul>
+    <?php endif; ?>
 
-    <a href="dashboard.php">Retour au dashboard</a>
+    <div class="nav" style="margin-top:1.2rem">
+        <a href="generate.php?travel_id=<?= $travelId ?>">Générer le tour</a> &middot;
+        <a href="dashboard.php">Dashboard</a>
+    </div>
 
 </body>
 </html>

@@ -44,51 +44,50 @@ $travels = $req->fetchAll();
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
+    <link rel="stylesheet" href="../public/assets/css/style.css">
 </head>
 <body>
 
-    <h1>Dashboard</h1>
+    <div class="topbar">
+        <span class="brand">Planification de voyages</span>
+        <form action="logout.php" method="POST">
+            <button type="submit">Déconnexion</button>
+        </form>
+    </div>
 
-    <p>Bienvenue <?= $pseudo ?></p>
+    <h1>Mes voyages</h1>
+    <p style="color:var(--muted)">Bienvenue, <?= htmlspecialchars($pseudo) ?></p>
 
-    <!-- Logout form -->
-    <form action="logout.php" method="POST">
-        <button type="submit">Déconnexion</button>
-    </form>
-
-    <h2>Créer un nouveau voyage</h2>
-
-    <!-- Travel creation form -->
+    <h2>Nouveau voyage</h2>
     <form action="" method="POST">
         <input type="hidden" name="action" value="create_travel">
-
         <input type="text" name="title" placeholder="Nom du voyage">
-
         <select name="visibility">
             <option value="private">Privé</option>
             <option value="public">Public</option>
         </select>
-
-        <button type="submit">Créer le voyage</button>
+        <button type="submit">Créer</button>
     </form>
 
-
-    <h2>Mes voyages</h2>
+    <h2>Voyages existants</h2>
 
     <?php if (count($travels) == 0): ?>
-        <p>Vous n'avez pas encore créé de voyage.</p>
+        <p style="color:var(--muted)">Aucun voyage créé pour l'instant.</p>
     <?php endif; ?>
 
-    <!-- List of travels -->
     <?php foreach ($travels as $travel): ?>
-        <div>
-            <h3><?= $travel['titre'] ?></h3>
-
-            <p>Statut : <?= $travel['statut'] ?></p>
-
-            <a href="places.php?travel_id=<?= $travel['id'] ?>">Gérer les lieux</a>
-            <a href="generate.php?travel_id=<?= $travel['id'] ?>">Générer le tour</a>
-            <a href="results.php?travel_id=<?= $travel['id'] ?>">Voir les résultats</a>
+        <div class="card">
+            <h3>
+                <?= htmlspecialchars($travel['titre']) ?>
+                <span class="badge <?= $travel['statut'] === 'public' ? 'public' : '' ?>">
+                    <?= htmlspecialchars($travel['statut']) ?>
+                </span>
+            </h3>
+            <div class="card-links">
+                <a href="places.php?travel_id=<?= $travel['id'] ?>">Gérer les lieux</a>
+                <a href="generate.php?travel_id=<?= $travel['id'] ?>">Générer le tour</a>
+                <a href="results.php?travel_id=<?= $travel['id'] ?>">Voir les résultats</a>
+            </div>
         </div>
     <?php endforeach; ?>
 

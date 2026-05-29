@@ -89,32 +89,37 @@ if ($_SERVER['REQUEST_METHOD'] === "POST") {
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Generer le tour</title>
+    <title>Générer le tour</title>
+    <link rel="stylesheet" href="../public/assets/css/style.css">
 </head>
 <body>
 
-    <h1>Generer le tour</h1>
+    <h1>Générer le tour</h1>
 
     <?php if ($message): ?>
-        <p style="color:red"><?= htmlspecialchars($message) ?></p>
+        <p class="msg error"><?= htmlspecialchars($message) ?></p>
     <?php endif; ?>
 
-    <h2>Mes lieux (<?= count($places) ?>)</h2>
-    <ul>
+    <h2>Villes sélectionnées (<?= count($places) ?>)</h2>
+    <ul style="list-style:none;padding:0;margin-bottom:1.2rem">
         <?php foreach ($places as $place): ?>
-            <li><?= htmlspecialchars($place['nom']) ?> (<?= $place['latitude'] ?>, <?= $place['longitude'] ?>)</li>
+            <li style="padding:.3rem 0;border-bottom:1px solid var(--green-light);font-size:.93rem">
+                <?= htmlspecialchars($place['nom']) ?>
+                <span style="color:var(--muted);font-size:.8rem;margin-left:.5rem"><?= round($place['latitude'],4) ?>, <?= round($place['longitude'],4) ?></span>
+            </li>
         <?php endforeach; ?>
     </ul>
 
     <form action="" method="POST">
-        <p>
-            <label for="max_hotels">Nombre maximum d'hotels (laisser vide = automatique) :</label><br>
-            <input type="number" id="max_hotels" name="max_hotels" min="1" max="<?= count($places) ?>" placeholder="auto">
-        </p>
-        <button type="submit">Generer le tour optimise</button>
+        <label for="max_hotels">Nombre maximum d'hôtels <span style="color:var(--muted)">(laisser vide = automatique)</span></label>
+        <input type="number" id="max_hotels" name="max_hotels" min="1" max="<?= count($places) ?>" placeholder="auto" style="max-width:200px">
+        <button type="submit">Générer le tour optimisé</button>
     </form>
 
-    <a href="dashboard.php">Retour au dashboard</a>
+    <div class="nav">
+        <a href="places.php?travel_id=<?= $travelId ?>">Modifier les lieux</a> &middot;
+        <a href="dashboard.php">Dashboard</a>
+    </div>
 
 </body>
 </html>

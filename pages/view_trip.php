@@ -1,6 +1,5 @@
 <?php
 session_start();
-$bdd = null;
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../models/TravelManager.php';
 
@@ -36,14 +35,16 @@ $route = json_decode($trip['ordered_route'], true);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Shared Trip - <?php echo htmlspecialchars($trip['title']); ?></title>
+    <title>Shared Trip — <?php echo htmlspecialchars($trip['title']); ?></title>
+    <link rel="stylesheet" href="../public/assets/css/style.css">
 </head>
 <body>
-    <h1>Shared Trip: <?php echo htmlspecialchars($trip['title']); ?></h1>
-    <h3>Generated optimized itinerary:</h3>
+    <h1><?php echo htmlspecialchars($trip['title']); ?></h1>
+    <p class="meta">Itinéraire partagé &middot; <?= ucfirst($trip['privacy']) ?></p>
+    <h2>Ordre des étapes</h2>
     <ul>
         <?php foreach ($route as $place): ?>
-            <li>📍 <?php echo htmlspecialchars($place['name']); ?></li>
+            <li><?php echo htmlspecialchars($place['name']); ?></li>
         <?php endforeach; ?>
     </ul>
 </body>

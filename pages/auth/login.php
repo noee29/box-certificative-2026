@@ -4,24 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
+    <link rel="stylesheet" href="../../public/assets/css/style.css">
 </head>
 <body>
 
-    <h1>Connectez vous à votre compte ci-dessous :</h1>
+    <h1>Connexion</h1>
 
     <form action="" method="POST">
         <input type="hidden" name="action" value="login">
-
-        <input type="email" name="email" placeholder="Saisir adresse mail">
-        <input type="password" name="password" placeholder="Saisir mot de passe">
-
+        <label>Adresse email</label>
+        <input type="email" name="email" placeholder="votre@email.com">
+        <label>Mot de passe</label>
+        <input type="password" name="password" placeholder="••••••••">
         <button type="submit">Se connecter</button>
     </form>
 
-    <form action="" method="POST">
-        <input type="hidden" name="action" value="creation">
-        <button type="submit">Créer un compte</button>
-    </form>
+    <p style="margin-top:.8rem;font-size:.9rem;color:var(--muted)">
+        Pas encore de compte ?
+        <form action="" method="POST" style="display:inline">
+            <input type="hidden" name="action" value="creation">
+            <button type="submit" style="background:none;color:var(--blue);border:none;padding:0;font-size:.9rem;cursor:pointer;margin:0">Créer un compte</button>
+        </form>
+    </p>
 
 </body>
 </html>
